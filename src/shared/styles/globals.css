@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Paleta Minimalista - Light Mode */
+    --bg-primary: 250 250 252;        /* Casi blanco con tinte azul */
+    --bg-secondary: 241 243 247;      /* Gris muy claro */
+    --bg-tertiary: 255 255 255;       /* Blanco puro */
+
+    --text-primary: 15 23 42;         /* Slate 900 */
+    --text-secondary: 71 85 105;      /* Slate 600 */
+    --text-tertiary: 148 163 184;     /* Slate 400 */
+
+    --accent: 99 102 241;             /* Indigo 500 */
+    --accent-hover: 79 70 229;        /* Indigo 600 */
+    --accent-subtle: 224 231 255;     /* Indigo 100 */
+
+    --border: 226 232 240;            /* Slate 200 */
+    --border-subtle: 241 245 249;     /* Slate 100 */
+
+    --success: 34 197 94;             /* Green 500 */
+    --warning: 251 146 60;            /* Orange 500 */
+    --error: 239 68 68;               /* Red 500 */
+  }
+
+  .dark {
+    /* Paleta Minimalista - Dark Mode */
+    --bg-primary: 15 23 42;           /* Slate 900 */
+    --bg-secondary: 30 41 59;         /* Slate 800 */
+    --bg-tertiary: 51 65 85;          /* Slate 700 */
+
+    --text-primary: 248 250 252;      /* Slate 50 */
+    --text-secondary: 203 213 225;    /* Slate 300 */
+    --text-tertiary: 148 163 184;     /* Slate 400 */
+
+    --accent: 129 140 248;            /* Indigo 400 */
+    --accent-hover: 165 180 252;      /* Indigo 300 */
+    --accent-subtle: 49 46 129;       /* Indigo 900 */
+
+    --border: 51 65 85;               /* Slate 700 */
+    --border-subtle: 30 41 59;        /* Slate 800 */
+
+    --success: 74 222 128;            /* Green 400 */
+    --warning: 251 191 36;            /* Amber 400 */
+    --error: 248 113 113;             /* Red 400 */
+  }
+
+  * {
+    border-color: rgb(var(--border));
+  }
+
+  body {
+    background-color: rgb(var(--bg-primary));
+    color: rgb(var(--text-primary));
+    font-feature-settings: "liga" 1, "calt" 1;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer utilities {
+  /* Backgrounds */
+  .bg-primary {
+    background-color: rgb(var(--bg-primary));
+  }
+
+  .bg-secondary {
+    background-color: rgb(var(--bg-secondary));
+  }
+
+  .bg-tertiary {
+    background-color: rgb(var(--bg-tertiary));
+  }
+
+  /* Text Colors */
+  .text-primary {
+    color: rgb(var(--text-primary));
+  }
+
+  .text-secondary {
+    color: rgb(var(--text-secondary));
+  }
+
+  .text-tertiary {
+    color: rgb(var(--text-tertiary));
+  }
+
+  /* Accents */
+  .bg-accent {
+    background-color: rgb(var(--accent));
+  }
+
+  .bg-accent-hover:hover {
+    background-color: rgb(var(--accent-hover));
+  }
+
+  .bg-accent-subtle {
+    background-color: rgb(var(--accent-subtle));
+  }
+
+  .text-accent {
+    color: rgb(var(--accent));
+  }
+
+  /* Borders */
+  .border-default {
+    border-color: rgb(var(--border));
+  }
+
+  .border-subtle {
+    border-color: rgb(var(--border-subtle));
+  }
+
+  /* Status Colors */
+  .text-success {
+    color: rgb(var(--success));
+  }
+
+  .text-warning {
+    color: rgb(var(--warning));
+  }
+
+  .text-error {
+    color: rgb(var(--error));
+  }
+
+  /* Glass Effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}

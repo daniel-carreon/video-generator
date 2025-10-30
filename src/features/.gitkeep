@@ -1,0 +1,7 @@
+# Features directory
+# Each feature contains:
+# - components/: Feature-specific components
+# - hooks/: Feature-specific hooks
+# - services/: API and business logic
+# - types/: Feature-specific types
+# - store/: Feature-specific state (Zustand)

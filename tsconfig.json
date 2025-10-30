@@ -1,0 +1,72 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "jsx": "react-jsx",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@/app/*": [
+        "./src/app/*"
+      ],
+      "@/features/*": [
+        "./src/features/*"
+      ],
+      "@/shared/*": [
+        "./src/shared/*"
+      ],
+      "@/shared/components/*": [
+        "./src/shared/components/*"
+      ],
+      "@/shared/hooks/*": [
+        "./src/shared/hooks/*"
+      ],
+      "@/shared/stores/*": [
+        "./src/shared/stores/*"
+      ],
+      "@/shared/types/*": [
+        "./src/shared/types/*"
+      ],
+      "@/shared/utils/*": [
+        "./src/shared/utils/*"
+      ],
+      "@/shared/lib/*": [
+        "./src/shared/lib/*"
+      ],
+      "@/shared/constants/*": [
+        "./src/shared/constants/*"
+      ]
+    },
+    "allowJs": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
