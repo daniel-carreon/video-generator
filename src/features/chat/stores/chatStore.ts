@@ -26,7 +26,7 @@ interface ChatStore {
   createAssistantMessage: (content: string, toolCalled?: string, toolResult?: any) => ChatMessage;
 }
 
-export const useChatStore = create<ChatStore>(
+export const useChatStore = create<ChatStore>()(
   persist(
     (set, get) => ({
       messages: [],
