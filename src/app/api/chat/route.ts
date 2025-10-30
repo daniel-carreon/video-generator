@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { getBaseUrl } from '@/shared/lib/env';
 
 // Configurar OpenRouter (compatible con OpenAI SDK)
 const openai = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
   defaultHeaders: {
-    'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+    'HTTP-Referer': getBaseUrl(),
     'X-Title': 'Video Generator AI'
   }
 });
@@ -195,7 +196,7 @@ export async function POST(req: NextRequest) {
 
       if (functionName === 'generate_video_text') {
         // Llamar a la API de generación de videos
-        const generateResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/videos/generate`, {
+        const generateResponse = await fetch(`${getBaseUrl()}/api/videos/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -219,7 +220,7 @@ export async function POST(req: NextRequest) {
           const result = await generateResponse.json();
 
           // Guardar video en la base de datos
-          await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/videos`, {
+          await fetch(`${getBaseUrl()}/api/videos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -248,7 +249,7 @@ export async function POST(req: NextRequest) {
         }
       } else if (functionName === 'animate_image') {
         // Llamar a la API de image-to-video
-        const generateResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/videos/generate`, {
+        const generateResponse = await fetch(`${getBaseUrl()}/api/videos/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -271,7 +272,7 @@ export async function POST(req: NextRequest) {
           const result = await generateResponse.json();
 
           // Guardar en BD
-          await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/videos`, {
+          await fetch(`${getBaseUrl()}/api/videos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

@@ -3,8 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useChatStore, VideoModel } from '../stores/chatStore';
 import { MODEL_CONFIG } from '@/features/video-generation/config/modelConfig';
-
-const API_BASE = process.env.NEXT_PUBLIC_SITE_URL || '';
+import { getApiUrl } from '@/shared/lib/env';
 
 // Metadata de modelos para el selector
 const MODEL_DISPLAY: Record<VideoModel, { name: string; emoji: string; badge: string }> = {
@@ -60,7 +59,7 @@ export function ChatAgent() {
 
     try {
       // Llamar al API de chat con el modelo preferido
-      const response = await fetch(`${API_BASE}/api/chat`, {
+      const response = await fetch(getApiUrl('/api/chat'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

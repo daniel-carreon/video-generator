@@ -3,8 +3,7 @@ import {
   VideoGenerationResult,
   GeneratedVideo
 } from '../types';
-
-const API_BASE = process.env.NEXT_PUBLIC_SITE_URL || '';
+import { getApiUrl } from '@/shared/lib/env';
 
 export class VideoService {
   /**
@@ -13,7 +12,7 @@ export class VideoService {
   static async generateVideo(
     request: GenerateVideoRequest
   ): Promise<VideoGenerationResult> {
-    const response = await fetch(`${API_BASE}/api/videos/generate`, {
+    const response = await fetch(getApiUrl('/api/videos/generate'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request)
@@ -31,7 +30,7 @@ export class VideoService {
    * Guardar video en Supabase
    */
   static async saveVideo(video: Partial<GeneratedVideo>): Promise<GeneratedVideo> {
-    const response = await fetch(`${API_BASE}/api/videos`, {
+    const response = await fetch(getApiUrl('/api/videos'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -74,7 +73,7 @@ export class VideoService {
     if (filters?.model) params.append('model', filters.model);
     if (filters?.limit) params.append('limit', String(filters.limit));
 
-    const response = await fetch(`${API_BASE}/api/videos?${params.toString()}`);
+    const response = await fetch(getApiUrl(`/api/videos?${params.toString()}`));
 
     if (!response.ok) {
       const error = await response.json();
@@ -92,7 +91,7 @@ export class VideoService {
     id: string,
     updates: Partial<GeneratedVideo>
   ): Promise<GeneratedVideo> {
-    const response = await fetch(`${API_BASE}/api/videos`, {
+    const response = await fetch(getApiUrl('/api/videos'), {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -116,7 +115,7 @@ export class VideoService {
    * Eliminar video
    */
   static async deleteVideo(id: string): Promise<void> {
-    const response = await fetch(`${API_BASE}/api/videos?id=${id}`, {
+    const response = await fetch(getApiUrl(`/api/videos?id=${id}`), {
       method: 'DELETE'
     });
 
