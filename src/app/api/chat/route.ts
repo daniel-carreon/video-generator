@@ -137,7 +137,7 @@ interface ChatMessage {
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, conversationId } = await req.json();
+    const { messages, conversationId, preferredModel } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -146,11 +146,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(`💬 Chat request with ${messages.length} messages`);
+    console.log(`💬 Chat request with ${messages.length} messages | Preferred model: ${preferredModel || 'auto'}`);
+
+    // Preparar system prompt con modelo preferido
+    let systemPrompt = SYSTEM_PROMPT;
+    if (preferredModel) {
+      const modelNames: Record<string, string> = {
+        'veo3': 'Veo 3',
+        'veo3-fast': 'Veo 3 Fast',
+        'hailuo-standard': 'Hailuo 02 Standard',
+        'hailuo-pro': 'Hailuo 02 Pro',
+        'kling': 'Kling Video'
+      };
+      systemPrompt += `\n\n🎯 USER'S PREFERRED MODEL: **${modelNames[preferredModel] || preferredModel}**\n\nIMPORTANT: Unless the user explicitly requests a different model, ALWAYS use "${preferredModel}" when calling the generate_video_text function. The user has pre-selected this model in their interface.`;
+    }
 
     // Preparar mensajes con system prompt
     const chatMessages: ChatMessage[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: systemPrompt },
       ...messages
     ];
 

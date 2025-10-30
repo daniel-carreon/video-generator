@@ -1,9 +1,19 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useChatStore } from '../stores/chatStore';
+import { useChatStore, VideoModel } from '../stores/chatStore';
+import { MODEL_CONFIG } from '@/features/video-generation/config/modelConfig';
 
 const API_BASE = process.env.NEXT_PUBLIC_SITE_URL || '';
+
+// Metadata de modelos para el selector
+const MODEL_DISPLAY: Record<VideoModel, { name: string; emoji: string; badge: string }> = {
+  'hailuo-standard': { name: 'Hailuo Standard', emoji: '💰', badge: 'Económico' },
+  'hailuo-pro': { name: 'Hailuo Pro', emoji: '✨', badge: 'Premium' },
+  'veo3': { name: 'Veo 3', emoji: '🎵', badge: 'Con Audio' },
+  'veo3-fast': { name: 'Veo 3 Fast', emoji: '⚡', badge: 'Rápido' },
+  'kling': { name: 'Kling Video', emoji: '🎬', badge: 'Hiperrealista' }
+};
 
 export function ChatAgent() {
   const {
@@ -11,9 +21,11 @@ export function ChatAgent() {
     isLoading,
     error,
     currentConversationId,
+    selectedModel,
     addMessage,
     setLoading,
     setError,
+    setSelectedModel,
     createUserMessage,
     createAssistantMessage
   } = useChatStore();
@@ -47,7 +59,7 @@ export function ChatAgent() {
     setError(null);
 
     try {
-      // Llamar al API de chat
+      // Llamar al API de chat con el modelo preferido
       const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,7 +71,8 @@ export function ChatAgent() {
             })),
             { role: 'user', content: userMessage.content }
           ],
-          conversationId: currentConversationId
+          conversationId: currentConversationId,
+          preferredModel: selectedModel
         })
       });
 
@@ -109,10 +122,37 @@ export function ChatAgent() {
     <div className="flex flex-col h-full max-h-[600px] bg-tertiary rounded-lg border border-default">
       {/* Header */}
       <div className="p-4 border-b border-default">
-        <h2 className="text-lg font-semibold text-primary">🤖 Video AI Assistant</h2>
-        <p className="text-sm text-secondary">
-          Pregúntame para generar videos con IA
-        </p>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-lg font-semibold text-primary">🤖 Video AI Assistant</h2>
+          {/* Model Selector */}
+          <div className="relative">
+            <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value as VideoModel)}
+              className="px-3 py-1.5 pr-8 text-xs font-medium bg-secondary border border-default rounded-lg text-primary cursor-pointer hover:border-accent transition-smooth focus:outline-none focus:border-accent appearance-none"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                backgroundPosition: 'right 0.25rem center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: '1.5em 1.5em'
+              }}
+            >
+              {(Object.keys(MODEL_DISPLAY) as VideoModel[]).map((model) => (
+                <option key={model} value={model}>
+                  {MODEL_DISPLAY[model].emoji} {MODEL_DISPLAY[model].name} • {MODEL_DISPLAY[model].badge}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-secondary">
+            Pregúntame para generar videos con IA
+          </p>
+          <p className="text-xs text-tertiary">
+            ${MODEL_CONFIG[selectedModel].costPerSecond}/s
+          </p>
+        </div>
       </div>
 
       {/* Messages */}
