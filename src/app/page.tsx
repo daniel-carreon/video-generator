@@ -124,7 +124,7 @@ export default function Home() {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-accent">→</span>
-                      <span>Menciona el estilo: "cinematográfico", "realista", etc.</span>
+                      <span>Menciona el estilo: &quot;cinematográfico&quot;, &quot;realista&quot;, etc.</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-accent">→</span>

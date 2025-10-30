@@ -163,13 +163,13 @@ export function ChatAgent() {
             <p className="text-sm">Prueba escribiendo algo como:</p>
             <div className="mt-4 space-y-2 text-left max-w-md mx-auto">
               <div className="bg-secondary p-2 rounded text-sm text-primary">
-                "Genera un video de un carro deportivo corriendo por una carretera"
+                &quot;Genera un video de un carro deportivo corriendo por una carretera&quot;
               </div>
               <div className="bg-secondary p-2 rounded text-sm text-primary">
-                "¿Qué modelo me recomiendas para un video cinematográfico?"
+                &quot;¿Qué modelo me recomiendas para un video cinematográfico?&quot;
               </div>
               <div className="bg-secondary p-2 rounded text-sm text-primary">
-                "Crea un video de 8 segundos con el modelo Veo 3"
+                &quot;Crea un video de 8 segundos con el modelo Veo 3&quot;
               </div>
             </div>
           </div>
