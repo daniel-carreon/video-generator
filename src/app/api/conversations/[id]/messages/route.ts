@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const { id } = await params;
 
     const { data, error } = await supabase
-      .from('conversation_messages')
+      .from('messages')
       .select('*')
       .eq('conversation_id', id)
       .order('created_at', { ascending: true });
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const body = await req.json();
-    const { role, content, toolUsed, toolResult } = body;
+    const { messageId, role, content, toolCalled, toolResult, metadata } = body;
 
     if (!role || !content) {
       return NextResponse.json(
@@ -55,14 +55,19 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // Generar message_id si no se provee
+    const genMessageId = messageId || `msg_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
     const { data, error } = await supabase
-      .from('conversation_messages')
+      .from('messages')
       .insert({
+        message_id: genMessageId,
         conversation_id: id,
         role,
         content,
-        tool_used: toolUsed,
-        tool_result: toolResult
+        tool_called: toolCalled,
+        tool_result: toolResult,
+        metadata: metadata || {}
       })
       .select()
       .single();
@@ -79,7 +84,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     await supabase
       .from('conversations')
       .update({ updated_at: new Date().toISOString() })
-      .eq('id', id);
+      .eq('conversation_id', id);
 
     return NextResponse.json({ message: data }, { status: 201 });
   } catch (error: any) {

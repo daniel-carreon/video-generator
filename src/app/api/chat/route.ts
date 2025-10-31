@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { getBaseUrl } from '@/shared/lib/env';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 // Configurar OpenRouter (compatible con OpenAI SDK)
 const openai = new OpenAI({
@@ -147,7 +154,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(`💬 Chat request with ${messages.length} messages | Preferred model: ${preferredModel || 'auto'}`);
+    console.log(`💬 Chat request with ${messages.length} messages | Conversation: ${conversationId || 'new'} | Preferred model: ${preferredModel || 'auto'}`);
+
+    // Crear o verificar conversación en BD
+    let activeConversationId = conversationId;
+
+    if (!activeConversationId) {
+      // Nueva conversación - crear registro
+      activeConversationId = `conv_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+      const userMessage = messages[messages.length - 1]?.content || '';
+      const title = userMessage.length > 50
+        ? userMessage.substring(0, 50) + '...'
+        : userMessage || 'Nueva conversación';
+
+      await supabase.from('conversations').insert({
+        conversation_id: activeConversationId,
+        title: title,
+        metadata: { preferredModel }
+      });
+
+      console.log(`📝 Created new conversation: ${activeConversationId}`);
+    }
+
+    // Guardar mensaje del usuario en BD
+    const userMessage = messages[messages.length - 1];
+    const userMessageId = `msg_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+    await supabase.from('messages').insert({
+      message_id: userMessageId,
+      conversation_id: activeConversationId,
+      role: 'user',
+      content: userMessage.content,
+      metadata: {}
+    });
 
     // Preparar system prompt con modelo preferido
     let systemPrompt = SYSTEM_PROMPT;
@@ -319,16 +359,54 @@ export async function POST(req: NextRequest) {
         max_tokens: 4096
       });
 
+      const finalMessage = secondCompletion.choices[0].message.content;
+
+      // Guardar mensaje del asistente en BD
+      const assistantMessageId = `msg_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+      await supabase.from('messages').insert({
+        message_id: assistantMessageId,
+        conversation_id: activeConversationId,
+        role: 'assistant',
+        content: finalMessage || '',
+        tool_called: functionName,
+        tool_result: toolResult,
+        metadata: {}
+      });
+
+      // Actualizar timestamp de conversación
+      await supabase.from('conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('conversation_id', activeConversationId);
+
       return NextResponse.json({
-        message: secondCompletion.choices[0].message.content,
+        message: finalMessage,
         toolCalled: functionName,
-        toolResult: toolResult
+        toolResult: toolResult,
+        conversationId: activeConversationId
       });
     }
 
     // Si no hay tool calls, devolver respuesta directa
+    const directMessage = responseMessage.content;
+
+    // Guardar mensaje del asistente en BD
+    const assistantMessageId = `msg_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    await supabase.from('messages').insert({
+      message_id: assistantMessageId,
+      conversation_id: activeConversationId,
+      role: 'assistant',
+      content: directMessage || '',
+      metadata: {}
+    });
+
+    // Actualizar timestamp de conversación
+    await supabase.from('conversations')
+      .update({ updated_at: new Date().toISOString() })
+      .eq('conversation_id', activeConversationId);
+
     return NextResponse.json({
-      message: responseMessage.content
+      message: directMessage,
+      conversationId: activeConversationId
     });
   } catch (error: any) {
     console.error('❌ Error in chat API:', error);

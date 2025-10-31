@@ -25,6 +25,7 @@ export function ChatAgent() {
     setLoading,
     setError,
     setSelectedModel,
+    setCurrentConversationId,
     createUserMessage,
     createAssistantMessage
   } = useChatStore();
@@ -81,6 +82,11 @@ export function ChatAgent() {
       }
 
       const data = await response.json();
+
+      // Actualizar conversationId si se creó una nueva
+      if (data.conversationId && data.conversationId !== currentConversationId) {
+        setCurrentConversationId(data.conversationId);
+      }
 
       // Agregar respuesta del asistente
       const assistantMessage = createAssistantMessage(

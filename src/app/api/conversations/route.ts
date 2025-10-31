@@ -36,11 +36,15 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, metadata } = body;
+    const { conversationId, title, metadata } = body;
+
+    // Generar conversation_id si no se provee
+    const genConversationId = conversationId || `conv_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
     const { data, error } = await supabase
       .from('conversations')
       .insert({
+        conversation_id: genConversationId,
         title: title || 'Nueva Conversación',
         metadata: metadata || {}
       })
@@ -55,7 +59,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(`✅ Conversation created: ${data.id}`);
+    console.log(`✅ Conversation created: ${data.conversation_id}`);
     return NextResponse.json({ conversation: data }, { status: 201 });
   } catch (error: any) {
     console.error('Error in POST /api/conversations:', error);
