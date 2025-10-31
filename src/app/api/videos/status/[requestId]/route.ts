@@ -47,7 +47,11 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     // If completed, fetch the final result and save to Supabase
     if (statusData.status === 'COMPLETED') {
       const responseUrl = statusData.response_url;
-      const resultResponse = await fetch(responseUrl);
+      const resultResponse = await fetch(responseUrl, {
+        headers: {
+          'Authorization': `Key ${falApiKey}`
+        }
+      });
 
       if (!resultResponse.ok) {
         return NextResponse.json(
