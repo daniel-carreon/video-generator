@@ -147,153 +147,28 @@ export async function POST(req: NextRequest) {
     console.log(`📥 Queue response:`, queueData);
 
     const requestId = queueData.request_id;
-    const statusUrl = queueData.status_url;
 
-    if (!requestId || !statusUrl) {
-      throw new Error('No se recibió request_id o status_url de fal.ai');
+    if (!requestId) {
+      throw new Error('No se recibió request_id de fal.ai');
     }
 
-    // 2. Hacer polling hasta que el video esté listo
-    console.log(`⏳ Waiting for video generation (request_id: ${requestId})...`);
+    console.log(`✅ Video generation started successfully`);
+    console.log(`📝 Request ID: ${requestId}`);
+    console.log(`⏳ Video is being generated asynchronously...`);
 
-    let attempts = 0;
-    const maxAttempts = 60; // 60 intentos = 5 minutos máximo
-    const pollInterval = 5000; // 5 segundos entre intentos
-
-    while (attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, pollInterval));
-      attempts++;
-
-      console.log(`🔍 Polling attempt ${attempts}/${maxAttempts}...`);
-
-      const statusResponse = await fetch(statusUrl, {
-        headers: {
-          'Authorization': `Key ${falApiKey}`
-        }
-      });
-
-      if (!statusResponse.ok) {
-        console.error(`❌ Status check failed: ${statusResponse.status}`);
-        continue;
-      }
-
-      const statusData = await statusResponse.json();
-      console.log(`📊 Status: ${statusData.status}`);
-      console.log(`📦 Full status data:`, JSON.stringify(statusData, null, 2));
-
-      if (statusData.status === 'COMPLETED') {
-        // Cuando está COMPLETED, necesitamos obtener el resultado del response_url
-        console.log(`✅ Status COMPLETED, fetching final result from response_url...`);
-
-        const responseUrl = statusData.response_url;
-
-        // Intentar sin Authorization primero (podría ser un endpoint temporal público)
-        let resultResponse = await fetch(responseUrl, {
-          method: 'GET'
-        });
-
-        // Si falla, intentar con Authorization
-        if (!resultResponse.ok) {
-          console.log(`⚠️ First attempt failed (${resultResponse.status}), trying with Authorization...`);
-          resultResponse = await fetch(responseUrl, {
-            method: 'GET',
-            headers: {
-              'Authorization': `Key ${falApiKey}`
-            }
-          });
-        }
-
-        if (!resultResponse.ok) {
-          const errorText = await resultResponse.text();
-          console.error(`❌ Failed to fetch result (${resultResponse.status}):`, errorText);
-          console.error(`❌ Attempted URL:`, responseUrl);
-          throw new Error(`Failed to get final result: ${resultResponse.status} - ${errorText}`);
-        }
-
-        result = await resultResponse.json();
-        console.log(`🎉 Final result obtained:`, JSON.stringify(result, null, 2));
-        break;
-      } else if (statusData.status === 'FAILED') {
-        const errorMsg = statusData.error?.message || statusData.error || 'Unknown error';
-        console.error(`❌ Generation failed:`, errorMsg);
-        throw new Error(`Video generation failed: ${errorMsg}`);
-      }
-
-      // Status es IN_PROGRESS o IN_QUEUE, seguir esperando
-    }
-
-    if (attempts >= maxAttempts) {
-      throw new Error('Timeout: Video generation took too long (>5 minutes)');
-    }
-
-    // Procesar resultado (diferentes formatos según el modelo)
-    let videoUrl = result.video?.url || result.data?.video?.url || result.url;
-
-    // Para algunos modelos, el video puede estar en diferentes ubicaciones
-    if (!videoUrl && result.outputs) {
-      videoUrl = result.outputs[0]?.url || result.outputs.video?.url;
-    }
-
-    if (!videoUrl) {
-      console.error(`❌ No video URL found in response:`, result);
-      throw new Error('No se pudo obtener la URL del video generado. Revisa los logs del servidor.');
-    }
-
+    // Return immediately with request_id - frontend will poll for status
     const estimatedCost = calculateCost(model, validatedDuration, includeAudio);
 
-    const videoResult: VideoGenerationResult = {
-      videoUrl: videoUrl,
-      thumbnailUrl: result.thumbnail?.url || result.data?.thumbnail?.url || result.image?.url,
-      duration: validatedDuration,
-      resolution: validatedResolution,
-      seed: result.seed || result.data?.seed || Math.floor(Math.random() * 1000000),
+    return NextResponse.json({
+      status: 'PROCESSING',
+      requestId: requestId,
+      message: 'Video generation started. Check status using /api/videos/status/{requestId}',
+      estimatedCost: estimatedCost,
+      estimatedTime: '60-120 seconds',
+      prompt: prompt,
       model: model,
-      cost: estimatedCost
-    };
-
-    console.log(`✅ Video generated successfully!`);
-    console.log(`🎥 URL: ${videoResult.videoUrl}`);
-    console.log(`💰 Estimated cost: $${videoResult.cost?.toFixed(4)}`);
-
-    // 🔥 GUARDAR EN SUPABASE AUTOMÁTICAMENTE
-    try {
-      const videoId = `vid_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-
-      const { data: savedVideo, error: dbError } = await supabase
-        .from('generated_videos')
-        .insert({
-          video_id: videoId,
-          fal_url: videoResult.videoUrl,
-          supabase_url: null, // No estamos subiendo a Supabase storage por ahora
-          prompt: prompt,
-          duration: validatedDuration,
-          resolution: validatedResolution,
-          aspect_ratio: validatedAspectRatio,
-          model_used: model,
-          seed: videoResult.seed,
-          generation_session: null,
-          tags: [],
-          metadata: {
-            includeAudio: includeAudio,
-            cost: estimatedCost,
-            thumbnailUrl: videoResult.thumbnailUrl
-          }
-        })
-        .select()
-        .single();
-
-      if (dbError) {
-        console.error('⚠️ Failed to save video to database:', dbError);
-        // No bloquear la respuesta si falla el guardado
-      } else {
-        console.log(`💾 Video saved to database: ${videoId}`);
-      }
-    } catch (dbError) {
-      console.error('⚠️ Error saving to database:', dbError);
-      // No bloquear la respuesta
-    }
-
-    return NextResponse.json(videoResult);
+      duration: validatedDuration
+    });
   } catch (error: any) {
     console.error('❌ Error generating video:', error);
     return NextResponse.json(

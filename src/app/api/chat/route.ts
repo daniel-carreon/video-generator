@@ -235,7 +235,7 @@ export async function POST(req: NextRequest) {
       let toolResult: any;
 
       if (functionName === 'generate_video_text') {
-        // Llamar a la API de generación de videos
+        // Llamar a la API de generación de videos (ahora asíncrona)
         const generateResponse = await fetch(`${getBaseUrl()}/api/videos/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -259,32 +259,17 @@ export async function POST(req: NextRequest) {
         } else {
           const result = await generateResponse.json();
 
-          // Guardar video en la base de datos
-          await fetch(`${getBaseUrl()}/api/videos`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              videoId: `video_${Date.now()}`,
-              falUrl: result.videoUrl,
-              prompt: functionArgs.prompt,
-              duration: result.duration,
-              resolution: result.resolution,
-              aspectRatio: functionArgs.aspectRatio || '16:9',
-              modelUsed: functionArgs.model,
-              seed: result.seed,
-              generationSession: conversationId,
-              metadata: { cost: result.cost }
-            })
-          });
-
+          // Now /api/videos/generate returns immediately with requestId and status=PROCESSING
           toolResult = {
             success: true,
-            videoUrl: result.videoUrl,
-            thumbnailUrl: result.thumbnailUrl,
-            duration: result.duration,
+            status: result.status, // 'PROCESSING'
+            requestId: result.requestId,
+            prompt: functionArgs.prompt,
             model: functionArgs.model,
-            cost: result.cost,
-            message: `Video generated successfully! Estimated cost: $${result.cost?.toFixed(4)}`
+            duration: result.duration,
+            estimatedCost: result.estimatedCost,
+            estimatedTime: result.estimatedTime,
+            message: `Video generation started! This will take ${result.estimatedTime}. Request ID: ${result.requestId}`
           };
         }
       } else if (functionName === 'animate_image') {
