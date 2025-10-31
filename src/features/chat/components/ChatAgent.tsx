@@ -22,6 +22,7 @@ export function ChatAgent() {
     currentConversationId,
     selectedModel,
     addMessage,
+    updateMessage,
     setLoading,
     setError,
     setSelectedModel,
@@ -46,6 +47,71 @@ export function ChatAgent() {
       textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
     }
   }, [input]);
+
+  // Poll video status when requestId is received
+  const pollVideoStatus = async (requestId: string, prompt: string, model: string, duration: number, messageId: string) => {
+    const maxAttempts = 60; // 5 minutes max (5s interval)
+    let attempts = 0;
+
+    const poll = async () => {
+      try {
+        const statusResponse = await fetch(
+          getApiUrl(`/api/videos/status/${requestId}?prompt=${encodeURIComponent(prompt)}&model=${model}&duration=${duration}`),
+          { method: 'GET' }
+        );
+
+        if (!statusResponse.ok) {
+          throw new Error('Failed to check video status');
+        }
+
+        const statusData = await statusResponse.json();
+
+        if (statusData.status === 'COMPLETED' && statusData.videoUrl) {
+          // Update message with video URL
+          updateMessage(messageId, {
+            toolResult: {
+              videoUrl: statusData.videoUrl,
+              thumbnailUrl: statusData.thumbnailUrl,
+              status: 'COMPLETED',
+              prompt,
+              model,
+              duration
+            }
+          });
+
+          // Dispatch event for gallery update
+          window.dispatchEvent(new CustomEvent('video-generated', {
+            detail: {
+              videoUrl: statusData.videoUrl,
+              thumbnailUrl: statusData.thumbnailUrl,
+              prompt,
+              model,
+              duration
+            }
+          }));
+
+          setLoading(false);
+          return; // Stop polling
+        } else if (statusData.status === 'FAILED') {
+          throw new Error(statusData.error || 'Video generation failed');
+        } else {
+          // Still processing, continue polling
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 5000); // Poll every 5 seconds
+          } else {
+            throw new Error('Video generation timed out');
+          }
+        }
+      } catch (err: any) {
+        console.error('Poll error:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    poll();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,11 +162,26 @@ export function ChatAgent() {
       );
       addMessage(assistantMessage);
 
-      // Si se generó un video, podríamos disparar un evento para actualizar la galería
+      // Si la respuesta contiene un requestId (video en proceso), empezar polling
+      if (data.toolResult?.requestId && data.toolResult?.status === 'PROCESSING') {
+        pollVideoStatus(
+          data.toolResult.requestId,
+          data.toolResult.prompt,
+          data.toolResult.model,
+          data.toolResult.duration,
+          assistantMessage.id
+        );
+      } else {
+        // Si no hay requestId, terminar loading
+        setLoading(false);
+      }
+
+      // Si se generó un video directamente (animate_image por ejemplo), disparar evento
       if (data.toolResult?.videoUrl) {
         window.dispatchEvent(new CustomEvent('video-generated', {
           detail: data.toolResult
         }));
+        setLoading(false);
       }
     } catch (err: any) {
       console.error('Chat error:', err);
@@ -111,7 +192,6 @@ export function ChatAgent() {
         `Lo siento, ocurrió un error: ${err.message}. Por favor intenta de nuevo.`
       );
       addMessage(errorMessage);
-    } finally {
       setLoading(false);
     }
   };
