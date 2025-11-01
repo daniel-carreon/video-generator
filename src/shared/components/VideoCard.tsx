@@ -73,6 +73,22 @@ export function VideoCard({
 
   const thumbnailUrl = video.metadata?.thumbnailUrl || video.fal_url;
 
+  // Calculate cost based on model and duration
+  const calculateCost = () => {
+    const modelRates: Record<string, number> = {
+      'hailuo-standard': 0.045,  // $0.045 per second
+      'hailuo-pro': 0.08,        // $0.08 per second
+      'kling': 0.28,             // $0.28 per second
+      'veo-3': 0.25,             // $0.25 per second (base)
+    };
+
+    const model = video.model_used.toLowerCase();
+    const rate = modelRates[model] || 0.045; // default to hailuo-standard
+    return (video.duration * rate).toFixed(3);
+  };
+
+  const estimatedCost = calculateCost();
+
   return (
     <div
       onClick={handleCardClick}
@@ -95,6 +111,7 @@ export function VideoCard({
           preload="metadata"
           muted
           loop
+          playsInline
           onMouseEnter={(e) => e.currentTarget.play()}
           onMouseLeave={(e) => {
             e.currentTarget.pause();
@@ -140,11 +157,9 @@ export function VideoCard({
             {isFavorite ? '⭐' : '☆'}
           </button>
 
-          {video.metadata?.cost && (
-            <span className="text-xs text-gray-500">
-              ${(video.metadata.cost as number).toFixed(4)}
-            </span>
-          )}
+          <span className="text-xs font-mono text-green-600 dark:text-green-400 font-semibold">
+            ${estimatedCost}
+          </span>
         </div>
 
         <button
