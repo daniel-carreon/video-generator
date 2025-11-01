@@ -7,16 +7,25 @@ import { VideoCard } from '@/shared/components/VideoCard';
 import { useVideoStore } from '@/features/video-generation/stores/videoStore';
 import { VideoService } from '@/features/video-generation/services/videoService';
 import { GeneratedVideo } from '@/features/video-generation/types';
+import { StyleCard } from '@/features/styles/components/StyleCard';
+import { StyleForm } from '@/features/styles/components/StyleForm';
+import { useStyleStore } from '@/features/styles/stores/styleStore';
+import { Style } from '@/features/styles/types';
+import { Plus } from 'lucide-react';
 
 export default function Home() {
   const { videos, setVideos, deleteVideo: removeVideoFromStore } = useVideoStore();
-  const [activeTab, setActiveTab] = useState<'chat' | 'gallery' | 'settings'>('chat');
+  const { styles, setStyles, addStyle, updateStyle, removeStyle } = useStyleStore();
+  const [activeTab, setActiveTab] = useState<'chat' | 'gallery' | 'styles' | 'settings'>('chat');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<GeneratedVideo | null>(null);
+  const [isStyleFormOpen, setIsStyleFormOpen] = useState(false);
+  const [editingStyle, setEditingStyle] = useState<Style | null>(null);
 
-  // Cargar videos al montar
+  // Cargar videos y estilos al montar
   useEffect(() => {
     loadVideos();
+    loadStyles();
 
     // Escuchar eventos de videos generados
     const handleVideoGenerated = () => {
@@ -45,6 +54,80 @@ export default function Home() {
   const handleDeleteVideo = async (id: string) => {
     removeVideoFromStore(id);
     await loadVideos(); // Reload para asegurar consistencia
+  };
+
+  const loadStyles = async () => {
+    try {
+      const response = await fetch('/api/styles');
+      if (response.ok) {
+        const data = await response.json();
+        setStyles(data);
+      }
+    } catch (error) {
+      console.error('Failed to load styles:', error);
+    }
+  };
+
+  const handleCreateStyle = async (formData: FormData) => {
+    try {
+      const response = await fetch('/api/styles', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create style');
+      }
+
+      const newStyle = await response.json();
+      addStyle(newStyle);
+    } catch (error) {
+      console.error('Failed to create style:', error);
+      throw error;
+    }
+  };
+
+  const handleEditStyle = async (formData: FormData) => {
+    if (!editingStyle) return;
+
+    try {
+      const response = await fetch(`/api/styles/${editingStyle.id}`, {
+        method: 'PATCH',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update style');
+      }
+
+      const updatedStyle = await response.json();
+      updateStyle(editingStyle.id, updatedStyle);
+      setEditingStyle(null);
+    } catch (error) {
+      console.error('Failed to update style:', error);
+      throw error;
+    }
+  };
+
+  const handleDeleteStyle = async (id: string) => {
+    try {
+      const response = await fetch(`/api/styles/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete style');
+      }
+
+      removeStyle(id);
+    } catch (error) {
+      console.error('Failed to delete style:', error);
+      alert('Error deleting style');
+    }
+  };
+
+  const handleCopyPrompt = (prompt: string) => {
+    navigator.clipboard.writeText(prompt);
   };
 
   return (
@@ -93,6 +176,16 @@ export default function Home() {
             }`}
           >
             🎥 Galería ({videos.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('styles')}
+            className={`px-6 py-3 font-medium transition-smooth border-b-2 ${
+              activeTab === 'styles'
+                ? 'border-accent text-accent'
+                : 'border-transparent text-tertiary hover:text-primary'
+            }`}
+          >
+            🎨 Styles ({styles.length})
           </button>
           <button
             onClick={() => setActiveTab('settings')}
@@ -199,6 +292,58 @@ export default function Home() {
             </div>
           )}
 
+          {/* Styles Tab */}
+          {activeTab === 'styles' && (
+            <div>
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-primary">Mis Estilos</h2>
+                <button
+                  onClick={() => {
+                    setEditingStyle(null);
+                    setIsStyleFormOpen(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition-smooth"
+                >
+                  <Plus className="w-5 h-5" />
+                  Nuevo Estilo
+                </button>
+              </div>
+
+              {styles.length === 0 ? (
+                <div className="text-center py-12 bg-tertiary border border-default rounded-lg">
+                  <p className="text-secondary mb-4">
+                    No hay estilos aún. Crea tu primer estilo para reutilizarlo.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setEditingStyle(null);
+                      setIsStyleFormOpen(true);
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:opacity-90 transition-smooth"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Crear Estilo
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {styles.map((style) => (
+                    <StyleCard
+                      key={style.id}
+                      style={style}
+                      onEdit={(s) => {
+                        setEditingStyle(s);
+                        setIsStyleFormOpen(true);
+                      }}
+                      onDelete={handleDeleteStyle}
+                      onCopyPrompt={handleCopyPrompt}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Settings Tab */}
           {activeTab === 'settings' && (
             <div className="bg-tertiary rounded-lg border border-default p-6">
@@ -208,6 +353,17 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {/* Style Form Modal */}
+      <StyleForm
+        style={editingStyle || undefined}
+        isOpen={isStyleFormOpen}
+        onClose={() => {
+          setIsStyleFormOpen(false);
+          setEditingStyle(null);
+        }}
+        onSubmit={editingStyle ? handleEditStyle : handleCreateStyle}
+      />
 
       {/* Video Modal */}
       {selectedVideo && (

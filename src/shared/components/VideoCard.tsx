@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Download, ExternalLink, Play, Trash2, Star } from 'lucide-react';
 import { GeneratedVideo } from '@/features/video-generation/types';
 import { VideoService } from '@/features/video-generation/services/videoService';
+import { useVideoThumbnail } from '@/shared/hooks/useVideoThumbnail';
 
 interface VideoCardProps {
   video: GeneratedVideo;
@@ -23,6 +25,9 @@ export function VideoCard({
 }: VideoCardProps) {
   const [isFavorite, setIsFavorite] = useState(video.is_favorite);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Extract thumbnail from video on mount
+  const { thumbnail } = useVideoThumbnail(video.fal_url, 1);
 
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -71,7 +76,19 @@ export function VideoCard({
     }
   };
 
-  const thumbnailUrl = video.metadata?.thumbnailUrl || video.fal_url;
+  const handleDownload = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Use server endpoint to avoid CORS issues
+    window.location.href = `/api/videos/${video.id}/download`;
+  };
+
+  const handleOpenInNewTab = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.open(video.fal_url, '_blank');
+  };
+
+  // Use extracted frame or stored thumbnail, fallback to gradient
+  const posterUrl = video.metadata?.thumbnailUrl || thumbnail || undefined;
 
   // Calculate cost based on model and duration
   const calculateCost = () => {
@@ -103,10 +120,10 @@ export function VideoCard({
       `}
     >
       {/* Video Thumbnail/Preview */}
-      <div className="relative aspect-video bg-gray-900">
+      <div className="relative aspect-video bg-gradient-to-br from-gray-800 via-gray-900 to-black">
         <video
           src={video.fal_url}
-          poster={thumbnailUrl}
+          poster={posterUrl}
           className="w-full h-full object-cover"
           preload="metadata"
           muted
@@ -118,6 +135,13 @@ export function VideoCard({
             e.currentTarget.currentTime = 0;
           }}
         />
+
+        {/* Play Button Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 opacity-0 group-hover:opacity-100 transition-all">
+          <div className="bg-white/90 p-3 rounded-full hover:bg-white transition-colors">
+            <Play className="w-6 h-6 text-gray-900 fill-gray-900" />
+          </div>
+        </div>
 
         {/* Overlay con información */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
@@ -147,29 +171,49 @@ export function VideoCard({
 
       {/* Actions Bar */}
       <div className="bg-white dark:bg-gray-800 p-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={handleFavoriteClick}
             disabled={isLoading}
-            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
             title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
-            {isFavorite ? '⭐' : '☆'}
+            <Star className={`w-4 h-4 ${isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`} />
           </button>
 
-          <span className="text-xs font-mono text-green-600 dark:text-green-400 font-semibold">
+          <span className="text-xs font-mono text-green-600 dark:text-green-400 font-semibold ml-1">
             ${estimatedCost}
           </span>
         </div>
 
-        <button
-          onClick={handleDelete}
-          disabled={isLoading}
-          className="p-1 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors text-red-600"
-          title="Delete video"
-        >
-          🗑️
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={handleOpenInNewTab}
+            disabled={isLoading}
+            className="p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900 rounded transition-colors text-blue-600 dark:text-blue-400"
+            title="Open video in new tab"
+          >
+            <ExternalLink className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={handleDownload}
+            disabled={isLoading}
+            className="p-1.5 hover:bg-green-100 dark:hover:bg-green-900 rounded transition-colors text-green-600 dark:text-green-400"
+            title="Download video"
+          >
+            <Download className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={handleDelete}
+            disabled={isLoading}
+            className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900 rounded transition-colors text-red-600 dark:text-red-400"
+            title="Delete video"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={jetbrainsMono.variable}>
-      <body className="font-mono antialiased">
+      <body className="font-mono antialiased" suppressHydrationWarning>
         <PasswordGate>
           <main>{children}</main>
         </PasswordGate>
