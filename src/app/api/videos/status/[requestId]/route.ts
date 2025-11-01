@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { calculateCost } from '@/features/video-generation/config/modelConfig';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -85,6 +86,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       const prompt = searchParams.get('prompt') || 'Video generated';
       const model = searchParams.get('model') || 'unknown';
       const duration = parseInt(searchParams.get('duration') || '6');
+      const includeAudio = searchParams.get('includeAudio') === 'true';
 
       // Save to Supabase
       try {
@@ -117,6 +119,36 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
           console.error('⚠️ Failed to save video to database:', dbError);
         } else {
           console.log(`💾 Video saved to database: ${videoId}`);
+
+          // Calculate cost and insert into video_costs table
+          try {
+            const totalCost = calculateCost(model as any, duration, includeAudio);
+            const costPerSecond = totalCost / duration;
+
+            const { error: costError } = await supabase
+              .from('video_costs')
+              .insert({
+                video_id: videoId,
+                model: model,
+                duration: duration,
+                cost_per_second: costPerSecond,
+                total_cost: totalCost,
+                include_audio: includeAudio,
+                resolution: result.resolution || '768p',
+                aspect_ratio: result.aspect_ratio || '16:9',
+                metadata: {
+                  requestId: requestId
+                }
+              });
+
+            if (costError) {
+              console.error('⚠️ Failed to save cost to database:', costError);
+            } else {
+              console.log(`💰 Cost tracked: $${totalCost.toFixed(4)} USD`);
+            }
+          } catch (costError) {
+            console.error('⚠️ Error calculating/saving cost:', costError);
+          }
         }
       } catch (dbError) {
         console.error('⚠️ Error saving to database:', dbError);

@@ -11,12 +11,13 @@ import { StyleCard } from '@/features/styles/components/StyleCard';
 import { StyleForm } from '@/features/styles/components/StyleForm';
 import { useStyleStore } from '@/features/styles/stores/styleStore';
 import { Style } from '@/features/styles/types';
+import { MonthlyExpenses } from '@/features/analytics/components/MonthlyExpenses';
 import { Plus } from 'lucide-react';
 
 export default function Home() {
   const { videos, setVideos, deleteVideo: removeVideoFromStore } = useVideoStore();
   const { styles, setStyles, addStyle, updateStyle, removeStyle } = useStyleStore();
-  const [activeTab, setActiveTab] = useState<'chat' | 'gallery' | 'styles' | 'settings'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'gallery' | 'styles' | 'expenses' | 'settings'>('chat');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<GeneratedVideo | null>(null);
   const [isStyleFormOpen, setIsStyleFormOpen] = useState(false);
@@ -188,6 +189,16 @@ export default function Home() {
             🎨 Styles ({styles.length})
           </button>
           <button
+            onClick={() => setActiveTab('expenses')}
+            className={`px-6 py-3 font-medium transition-smooth border-b-2 ${
+              activeTab === 'expenses'
+                ? 'border-accent text-accent'
+                : 'border-transparent text-tertiary hover:text-primary'
+            }`}
+          >
+            💰 Gastos
+          </button>
+          <button
             onClick={() => setActiveTab('settings')}
             className={`px-6 py-3 font-medium transition-smooth border-b-2 ${
               activeTab === 'settings'
@@ -343,6 +354,9 @@ export default function Home() {
               )}
             </div>
           )}
+
+          {/* Expenses Tab */}
+          {activeTab === 'expenses' && <MonthlyExpenses />}
 
           {/* Settings Tab */}
           {activeTab === 'settings' && (

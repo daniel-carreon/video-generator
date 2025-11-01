@@ -8,6 +8,7 @@ import {
   validateAspectRatio,
   calculateCost
 } from '@/features/video-generation/config/modelConfig';
+import { compressPrompt, needsCompression } from '@/shared/lib/promptCompression';
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -83,13 +84,29 @@ export async function POST(req: NextRequest) {
       requestedAspectRatio || modelConfig.defaultAspectRatio
     );
 
+    // Compress prompt if too long (>2000 chars)
+    let finalPrompt = prompt;
+    let compressionInfo = null;
+
+    if (needsCompression(prompt)) {
+      console.log(`🗜️ Prompt too long (${prompt.length} chars), compressing...`);
+      const compressionResult = await compressPrompt(prompt);
+      finalPrompt = compressionResult.compressedPrompt;
+      compressionInfo = {
+        originalLength: compressionResult.originalLength,
+        compressedLength: compressionResult.compressedLength,
+        compressionRatio: compressionResult.compressionRatio
+      };
+      console.log(`✅ Compressed: ${compressionResult.originalLength} → ${compressionResult.compressedLength} chars (${(compressionResult.compressionRatio * 100).toFixed(1)}%)`);
+    }
+
     console.log(`🎬 Generating video with ${model}...`);
-    console.log(`📝 Prompt: ${prompt}`);
+    console.log(`📝 Prompt: ${finalPrompt}`);
     console.log(`⚙️ Validated params: ${validatedDuration}s, ${validatedResolution}, ${validatedAspectRatio}`);
 
     // Construir payload base
     const payload: any = {
-      prompt,
+      prompt: finalPrompt,
       aspect_ratio: validatedAspectRatio
     };
 
@@ -165,7 +182,9 @@ export async function POST(req: NextRequest) {
       message: 'Video generation started. Check status using /api/videos/status/{requestId}',
       estimatedCost: estimatedCost,
       estimatedTime: '60-120 seconds',
-      prompt: prompt,
+      prompt: finalPrompt,
+      originalPrompt: compressionInfo ? prompt : undefined,
+      compressionInfo: compressionInfo,
       model: model,
       duration: validatedDuration
     });

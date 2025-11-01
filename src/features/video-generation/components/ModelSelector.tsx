@@ -53,9 +53,83 @@ export function ModelSelector() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Model Comparison Table */}
+      <div className="bg-secondary border border-gray-700 rounded-lg overflow-hidden">
+        <div className="p-4 border-b border-gray-700">
+          <h3 className="text-lg font-semibold text-white">📊 Model Comparison</h3>
+          <p className="text-sm text-gray-400 mt-1">Compare features and pricing across all models</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-tertiary text-gray-400 uppercase text-xs">
+              <tr>
+                <th className="px-4 py-3 text-left">Model</th>
+                <th className="px-4 py-3 text-center">Cost/sec</th>
+                <th className="px-4 py-3 text-center">Duration</th>
+                <th className="px-4 py-3 text-center">Resolution</th>
+                <th className="px-4 py-3 text-center">Audio</th>
+                <th className="px-4 py-3 text-left">Best For</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
+              {Object.values(MODEL_CATALOG).map((model) => (
+                <tr key={model.id} className="hover:bg-tertiary/30 transition-colors">
+                  <td className="px-4 py-3">
+                    <span className="font-semibold text-white">{model.name}</span>
+                    {model.recommended && <span className="ml-2 text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded">Recommended</span>}
+                  </td>
+                  <td className="px-4 py-3 text-center font-mono text-accent">${model.costPerSecond}</td>
+                  <td className="px-4 py-3 text-center text-gray-300">{model.maxDuration}s</td>
+                  <td className="px-4 py-3 text-center text-gray-300">{model.resolutions.join(', ')}</td>
+                  <td className="px-4 py-3 text-center">{model.features.includes('audio') ? '✅' : '❌'}</td>
+                  <td className="px-4 py-3 text-gray-400 text-xs">{model.description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Budget Calculator */}
+      <div className="bg-secondary border border-gray-700 rounded-lg p-4">
+        <h3 className="text-lg font-semibold mb-3 text-white">💰 Budget Calculator</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-2 text-gray-300">Budget (USD)</label>
+            <input
+              type="number"
+              step="1"
+              min="1"
+              defaultValue="10"
+              className="w-full px-3 py-2 border border-gray-600 rounded-lg bg-tertiary text-white"
+              onChange={(e) => {
+                const budget = parseFloat(e.target.value) || 0;
+                const cost = calculateEstimatedCost(config.model, config.duration, config.includeAudio);
+                const videos = Math.floor(budget / cost);
+                const seconds = Math.floor(budget / MODEL_CATALOG[config.model].costPerSecond);
+                const el = e.target.parentElement?.parentElement?.querySelector('.budget-result');
+                if (el) el.textContent = `≈ ${videos} videos (${seconds}s total)`;
+              }}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2 text-gray-300">Using Model</label>
+            <div className="px-3 py-2 border border-gray-600 rounded-lg bg-tertiary text-white">
+              {MODEL_CATALOG[config.model].name}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2 text-gray-300">You can generate</label>
+            <div className="px-3 py-2 border border-gray-600 rounded-lg bg-accent/20 text-accent font-semibold budget-result">
+              ≈ {Math.floor(10 / calculateEstimatedCost(config.model, config.duration, config.includeAudio))} videos ({Math.floor(10 / MODEL_CATALOG[config.model].costPerSecond)}s total)
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div>
-        <h3 className="text-lg font-semibold mb-3 text-primary">Selecciona un Modelo</h3>
+        <h3 className="text-lg font-semibold mb-3 text-white">Select a Model</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Object.values(MODEL_CATALOG).map((model) => {
             const isSelected = config.model === model.id;
