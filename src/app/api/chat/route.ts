@@ -250,11 +250,26 @@ export async function POST(req: NextRequest) {
         });
 
         if (!generateResponse.ok) {
-          const error = await generateResponse.json();
+          let errorMessage = 'Failed to generate video';
+          let errorDetails = null;
+
+          // Leer como texto primero
+          const responseText = await generateResponse.text();
+
+          try {
+            const error = JSON.parse(responseText);
+            errorMessage = error.error || errorMessage;
+            errorDetails = error.details;
+          } catch (parseError) {
+            // Si no es JSON válido, usar el texto directo
+            console.error('❌ Non-JSON error response:', responseText.substring(0, 500));
+            errorDetails = `HTTP ${generateResponse.status}: ${responseText.substring(0, 200)}`;
+          }
+
           toolResult = {
             success: false,
-            error: error.error || 'Failed to generate video',
-            details: error.details
+            error: errorMessage,
+            details: errorDetails
           };
         } else {
           const result = await generateResponse.json();
