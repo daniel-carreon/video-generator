@@ -82,7 +82,7 @@ export function CostChart() {
             className={`flex-1 py-2 px-3 rounded-lg transition-colors ${
               activeChart === 'distribution'
                 ? 'bg-accent text-white'
-                : 'bg-tertiary text-gray-400 hover:text-white'
+                : 'bg-tertiary text-gray-700 hover:text-gray-900'
             }`}
           >
             <PieChart className="w-4 h-4 inline mr-2" />
@@ -93,7 +93,7 @@ export function CostChart() {
             className={`flex-1 py-2 px-3 rounded-lg transition-colors ${
               activeChart === 'timeline'
                 ? 'bg-accent text-white'
-                : 'bg-tertiary text-gray-400 hover:text-white'
+                : 'bg-tertiary text-gray-700 hover:text-gray-900'
             }`}
           >
             <BarChart3 className="w-4 h-4 inline mr-2" />
@@ -117,7 +117,7 @@ export function CostChart() {
 function ModelDistributionChart({ data }: { data: DistributionEntry[] }) {
   if (data.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400">
+      <div className="text-center py-8 text-gray-600">
         No data available
       </div>
     );
@@ -127,7 +127,7 @@ function ModelDistributionChart({ data }: { data: DistributionEntry[] }) {
 
   return (
     <div className="space-y-4">
-      <h4 className="text-sm font-semibold text-white mb-4">
+      <h4 className="text-sm font-semibold text-gray-900 mb-4">
         Cost by Model (Last 30 Days)
       </h4>
 
@@ -137,10 +137,10 @@ function ModelDistributionChart({ data }: { data: DistributionEntry[] }) {
         return (
           <div key={entry.model} className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-300 capitalize">
+              <span className="text-gray-700 capitalize">
                 {entry.model.replace('-', ' ')}
               </span>
-              <span className="text-white font-semibold">
+              <span className="text-gray-900 font-semibold">
                 ${entry.totalCost.toFixed(2)}
               </span>
             </div>
@@ -167,7 +167,7 @@ function ModelDistributionChart({ data }: { data: DistributionEntry[] }) {
 function TimelineChart({ data }: { data: TimelineEntry[] }) {
   if (data.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-400">
+      <div className="text-center py-8 text-gray-600">
         No data available
       </div>
     );
@@ -177,7 +177,7 @@ function TimelineChart({ data }: { data: TimelineEntry[] }) {
 
   return (
     <div className="space-y-4">
-      <h4 className="text-sm font-semibold text-white mb-4">
+      <h4 className="text-sm font-semibold text-gray-900 mb-4">
         Daily Cost (Last 30 Days)
       </h4>
 
@@ -192,8 +192,8 @@ function TimelineChart({ data }: { data: TimelineEntry[] }) {
           return (
             <div key={entry.date} className="space-y-1">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-400">{date}</span>
-                <span className="text-white font-semibold">
+                <span className="text-gray-600">{date}</span>
+                <span className="text-gray-900 font-semibold">
                   ${entry.dailyCost.toFixed(2)}
                 </span>
               </div>
@@ -218,7 +218,7 @@ function TopModelsCard({ data }: { data: DistributionEntry[] }) {
 
   return (
     <div className="bg-secondary border border-gray-700 rounded-lg p-4">
-      <h4 className="text-sm font-semibold text-white mb-3">
+      <h4 className="text-sm font-semibold text-gray-900 mb-3">
         Top Model (30 Days)
       </h4>
       <div className="flex items-center justify-between">
@@ -226,13 +226,13 @@ function TopModelsCard({ data }: { data: DistributionEntry[] }) {
           <p className="text-lg font-bold text-accent capitalize">
             {topModel.model.replace('-', ' ')}
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-600">
             {topModel.videoCount} videos • {topModel.percentage.toFixed(1)}% of usage
           </p>
         </div>
         <div className="text-right">
-          <p className="text-sm text-gray-400">Total Cost</p>
-          <p className="text-xl font-bold text-white">
+          <p className="text-sm text-gray-600">Total Cost</p>
+          <p className="text-xl font-bold text-gray-900">
             ${topModel.totalCost.toFixed(2)}
           </p>
         </div>

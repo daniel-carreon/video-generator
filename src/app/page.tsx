@@ -214,54 +214,8 @@ export default function Home() {
         <div className="space-y-6">
           {/* Chat Tab */}
           {activeTab === 'chat' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <ChatAgent />
-              </div>
-              <div className="space-y-6">
-                <div className="bg-tertiary rounded-lg border border-default p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-primary">💡 Tips</h3>
-                  <ul className="space-y-3 text-sm text-secondary">
-                    <li className="flex items-start gap-2">
-                      <span className="text-accent">→</span>
-                      <span>Sé específico con tus prompts para mejores resultados</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-accent">→</span>
-                      <span>Menciona el estilo: &quot;cinematográfico&quot;, &quot;realista&quot;, etc.</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-accent">→</span>
-                      <span>El modelo Hailuo Standard es el más económico ($0.045/s)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-accent">→</span>
-                      <span>Veo 3 puede generar audio/música integrado</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="bg-tertiary rounded-lg border border-default p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-primary">📊 Últimos Videos</h3>
-                  <div className="space-y-2">
-                    {videos.slice(0, 3).map((video) => (
-                      <div
-                        key={video.id}
-                        className="text-sm p-3 bg-secondary border border-subtle rounded cursor-pointer hover:border-default transition-smooth"
-                        onClick={() => {
-                          setSelectedVideo(video);
-                          setActiveTab('gallery');
-                        }}
-                      >
-                        <p className="line-clamp-1 font-medium text-primary">{video.prompt}</p>
-                        <p className="text-xs text-tertiary mt-1">
-                          {video.model_used} · {video.duration}s
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            <div className="w-full">
+              <ChatAgent />
             </div>
           )}
 

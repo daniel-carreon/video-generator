@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Style, StyleFormData } from '../types';
 import { usePasteImage } from '../hooks/usePasteImage';
+import { convertToWebP } from '@/shared/utils/imageUtils';
 
 interface StyleFormProps {
   style?: Style;
@@ -99,7 +100,16 @@ export function StyleForm({
     form.append('description', formData.description);
 
     if (imageFile) {
-      form.append('image', imageFile);
+      try {
+        // Convert image to WebP on client-side before uploading
+        const webpBlob = await convertToWebP(imageFile, 0.9);
+        const webpFile = new File([webpBlob], 'image.webp', { type: 'image/webp' });
+        form.append('image', webpFile);
+      } catch (error) {
+        console.error('Image conversion error:', error);
+        alert('Error converting image. Please try again.');
+        return;
+      }
     }
 
     try {

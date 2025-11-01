@@ -42,27 +42,40 @@ export class StyleService {
 
   /**
    * Create new style with optional image
+   * Auth is optional - allows null user_id for personal use
    */
   static async createStyle(input: CreateStyleInput): Promise<Style> {
+    console.log('🎨 StyleService.createStyle starting...', {
+      hasImage: !!input.image,
+      name: input.name
+    });
+
     let imageUrl: string | undefined;
 
     // Upload image if provided
     if (input.image) {
-      imageUrl = await this.uploadImage(input.image);
+      console.log('📤 Uploading image...');
+      try {
+        imageUrl = await this.uploadImage(input.image);
+        console.log('✅ Image uploaded:', imageUrl);
+      } catch (uploadError) {
+        console.error('❌ Image upload failed:', uploadError);
+        throw uploadError;
+      }
     }
 
+    // Try to get user, but don't require it
+    console.log('👤 Checking for user authentication...');
     const {
       data: { user },
     } = await supabase.auth.getUser();
+    console.log('User status:', user ? `Authenticated: ${user.id}` : 'Not authenticated (using NULL)');
 
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
-
+    console.log('💾 Inserting into database...');
     const { data, error } = await supabase
       .from('styles')
       .insert({
-        user_id: user.id,
+        user_id: user?.id || null,
         name: input.name,
         prompt: input.prompt,
         image_url: imageUrl,
@@ -73,9 +86,11 @@ export class StyleService {
       .single();
 
     if (error) {
+      console.error('❌ Database insert error:', error);
       throw new Error(`Failed to create style: ${error.message}`);
     }
 
+    console.log('✅ Style created in database:', data.id);
     return data as Style;
   }
 
@@ -148,14 +163,19 @@ export class StyleService {
 
   /**
    * Upload image to Supabase Storage
+   * Image should already be converted to WebP on client-side
    */
   private static async uploadImage(file: File | Blob): Promise<string> {
     const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const fileExtension = file.type.split('/')[1];
+    const fileExtension = file.type === 'image/webp' ? 'webp' : file.type.split('/')[1] || 'webp';
 
     const { data, error } = await supabase.storage
       .from(BUCKET_NAME)
-      .upload(`${fileName}.${fileExtension}`, file);
+      .upload(`${fileName}.${fileExtension}`, file, {
+        contentType: file.type,
+        cacheControl: '3600',
+        upsert: false
+      });
 
     if (error) {
       throw new Error(`Failed to upload image: ${error.message}`);

@@ -117,7 +117,7 @@ export function ExpensesTable() {
     <div className="bg-secondary border border-gray-700 rounded-lg overflow-hidden">
       {/* Header with filters */}
       <div className="p-4 border-b border-gray-700 flex flex-wrap items-center justify-between gap-4">
-        <h3 className="text-lg font-semibold text-white">Cost History</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Cost History</h3>
 
         <div className="flex items-center gap-3">
           {/* Model filter */}
@@ -127,7 +127,7 @@ export function ExpensesTable() {
               setFilterModel(e.target.value);
               setPagination(prev => ({ ...prev, page: 1 }));
             }}
-            className="px-3 py-1.5 bg-tertiary border border-gray-600 rounded text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent"
+            className="px-3 py-1.5 bg-tertiary border border-gray-600 rounded text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="">All Models</option>
             <option value="hailuo-standard">Hailuo Standard</option>
@@ -144,7 +144,7 @@ export function ExpensesTable() {
               setFilterDays(parseInt(e.target.value));
               setPagination(prev => ({ ...prev, page: 1 }));
             }}
-            className="px-3 py-1.5 bg-tertiary border border-gray-600 rounded text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent"
+            className="px-3 py-1.5 bg-tertiary border border-gray-600 rounded text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="7">Last 7 days</option>
             <option value="30">Last 30 days</option>
@@ -157,7 +157,7 @@ export function ExpensesTable() {
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-tertiary text-xs text-gray-400 uppercase">
+          <thead className="bg-tertiary text-xs text-gray-600 uppercase">
             <tr>
               <th className="px-4 py-3 text-left">Date</th>
               <th className="px-4 py-3 text-left">Model</th>
@@ -171,13 +171,13 @@ export function ExpensesTable() {
           <tbody className="divide-y divide-gray-700">
             {loading ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-600">
                   Loading...
                 </td>
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-gray-400">
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-600">
                   No cost entries found
                 </td>
               </tr>
@@ -187,13 +187,13 @@ export function ExpensesTable() {
                   key={entry.id}
                   className="hover:bg-tertiary/50 transition-colors text-sm"
                 >
-                  <td className="px-4 py-3 text-gray-300 whitespace-nowrap">
+                  <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
                     {formatDate(entry.createdAt)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <span>{MODEL_EMOJIS[entry.model] || MODEL_EMOJIS.unknown}</span>
-                      <span className="text-white font-medium">
+                      <span className="text-gray-900 font-medium">
                         {MODEL_NAMES[entry.model] || entry.model}
                       </span>
                       {entry.includeAudio && (
@@ -201,10 +201,10 @@ export function ExpensesTable() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-center text-white">
+                  <td className="px-4 py-3 text-center text-gray-900">
                     {entry.duration}s
                   </td>
-                  <td className="px-4 py-3 text-center text-gray-300">
+                  <td className="px-4 py-3 text-center text-gray-700">
                     {entry.resolution}
                     <span className="text-xs text-gray-500 ml-1">
                       {entry.aspectRatio}
@@ -213,7 +213,7 @@ export function ExpensesTable() {
                   <td className="px-4 py-3 text-right font-mono font-semibold text-accent">
                     ${entry.totalCost.toFixed(4)}
                   </td>
-                  <td className="px-4 py-3 text-gray-400 max-w-xs truncate">
+                  <td className="px-4 py-3 text-gray-600 max-w-xs truncate">
                     <span title={entry.prompt || 'N/A'}>
                       {truncatePrompt(entry.prompt)}
                     </span>
@@ -242,7 +242,7 @@ export function ExpensesTable() {
       {/* Pagination */}
       {pagination.totalPages > 1 && (
         <div className="p-4 border-t border-gray-700 flex items-center justify-between">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-600">
             Page {pagination.page} of {pagination.totalPages} • {pagination.total} total entries
           </p>
 

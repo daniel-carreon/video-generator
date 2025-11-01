@@ -21,6 +21,21 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
+const MODEL_DISPLAY_NAMES: Record<string, string> = {
+  'veo3': 'Veo 3',
+  'veo3-fast': 'Veo 3 Fast',
+  'hailuo-standard': 'Hailuo Standard',
+  'hailuo-pro': 'Hailuo Pro',
+  'kling': 'Kling',
+};
+
+function formatModelName(model: string | null): string {
+  if (!model) return 'N/A';
+  return MODEL_DISPLAY_NAMES[model] || model.split('-').map(word =>
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+}
+
 export function AnalyticsSummary({ summary }: Props) {
   const monthName = MONTH_NAMES[summary.month - 1];
 
@@ -30,15 +45,15 @@ export function AnalyticsSummary({ summary }: Props) {
       <div className="bg-secondary border border-gray-700 rounded-lg p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-2xl font-bold text-gray-900">
               {monthName} {summary.year}
             </h2>
-            <p className="text-gray-400 mt-1">
+            <p className="text-gray-600 mt-1">
               {summary.videoCount} videos generated
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-400">Total Spent</p>
+            <p className="text-sm text-gray-600">Total Spent</p>
             <p className="text-4xl font-bold text-accent">
               ${summary.totalCost.toFixed(2)}
             </p>
@@ -80,7 +95,7 @@ export function AnalyticsSummary({ summary }: Props) {
         <MetricCard
           icon={<Zap className="w-5 h-5" />}
           label="Most Used Model"
-          value={summary.mostUsedModel || 'N/A'}
+          value={formatModelName(summary.mostUsedModel)}
           valueClass="text-sm"
           color="text-yellow-400"
           bgColor="bg-yellow-500/10"
@@ -115,9 +130,9 @@ function MetricCard({
         <div className={`${bgColor} ${color} p-2 rounded-lg`}>
           {icon}
         </div>
-        <p className="text-sm text-gray-400">{label}</p>
+        <p className="text-sm text-gray-700">{label}</p>
       </div>
-      <p className={`${valueClass} font-bold text-white`}>{value}</p>
+      <p className={`${valueClass} font-bold text-gray-900`}>{value}</p>
       {secondaryValue && (
         <p className="text-xs text-gray-500 mt-1">{secondaryValue}</p>
       )}

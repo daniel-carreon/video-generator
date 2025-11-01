@@ -204,7 +204,7 @@ export function ChatAgent() {
   };
 
   return (
-    <div className="flex flex-col h-full max-h-[600px] bg-tertiary rounded-lg border border-default">
+    <div className="flex flex-col min-h-[calc(100vh-280px)] bg-tertiary rounded-lg border border-default">
       {/* Header */}
       <div className="p-4 border-b border-default">
         <div className="flex items-center justify-between mb-2">
@@ -245,18 +245,7 @@ export function ChatAgent() {
         {messages.length === 0 && (
           <div className="text-center text-secondary py-8">
             <p className="mb-4 text-primary">👋 ¡Hola! Soy tu asistente de generación de videos.</p>
-            <p className="text-sm">Prueba escribiendo algo como:</p>
-            <div className="mt-4 space-y-2 text-left max-w-md mx-auto">
-              <div className="bg-secondary p-2 rounded text-sm text-primary">
-                &quot;Genera un video de un carro deportivo corriendo por una carretera&quot;
-              </div>
-              <div className="bg-secondary p-2 rounded text-sm text-primary">
-                &quot;¿Qué modelo me recomiendas para un video cinematográfico?&quot;
-              </div>
-              <div className="bg-secondary p-2 rounded text-sm text-primary">
-                &quot;Crea un video de 8 segundos con el modelo Veo 3&quot;
-              </div>
-            </div>
+            <p className="text-sm text-tertiary">Escribe tu prompt para comenzar...</p>
           </div>
         )}
 
