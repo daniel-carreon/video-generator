@@ -236,7 +236,12 @@ export async function POST(req: NextRequest) {
 
       if (functionName === 'generate_video_text') {
         // Llamar a la API de generación de videos (ahora asíncrona)
-        const generateResponse = await fetch(`${getBaseUrl()}/api/videos/generate`, {
+        // Use the host from the original request to ensure correct port in development
+        const host = req.headers.get('host') || 'localhost:3000';
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        const baseUrl = `${protocol}://${host}`;
+
+        const generateResponse = await fetch(`${baseUrl}/api/videos/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -289,7 +294,11 @@ export async function POST(req: NextRequest) {
         }
       } else if (functionName === 'animate_image') {
         // Llamar a la API de image-to-video
-        const generateResponse = await fetch(`${getBaseUrl()}/api/videos/generate`, {
+        const host = req.headers.get('host') || 'localhost:3000';
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        const baseUrl = `${protocol}://${host}`;
+
+        const generateResponse = await fetch(`${baseUrl}/api/videos/generate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
