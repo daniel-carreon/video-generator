@@ -36,6 +36,7 @@
     "zustand": "^4.4.0"
   },
   "devDependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
     "@testing-library/jest-dom": "^6.1.0",
     "@testing-library/react": "^14.1.0",
     "@types/jest": "^29.5.0",
