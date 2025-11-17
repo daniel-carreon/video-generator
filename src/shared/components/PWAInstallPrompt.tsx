@@ -121,11 +121,11 @@ export default function PWAInstallPrompt() {
                   </p>
                   <p className="text-white text-xs font-medium flex items-center gap-2">
                     <span className="bg-white/20 rounded px-1.5 py-0.5 text-[10px]">2</span>
-                    Selecciona "Agregar a pantalla de inicio"
+                    Selecciona &ldquo;Agregar a pantalla de inicio&rdquo;
                   </p>
                   <p className="text-white text-xs font-medium flex items-center gap-2">
                     <span className="bg-white/20 rounded px-1.5 py-0.5 text-[10px]">3</span>
-                    Confirma tocando "Agregar"
+                    Confirma tocando &ldquo;Agregar&rdquo;
                   </p>
                 </div>
               </>
