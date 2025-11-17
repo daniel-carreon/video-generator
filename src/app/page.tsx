@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { ChatAgent } from '@/features/chat/components/ChatAgent';
 import { ModelSelector } from '@/features/video-generation/components/ModelSelector';
 import { VideoCard } from '@/shared/components/VideoCard';
@@ -23,6 +23,31 @@ export default function Home() {
   const [isStyleFormOpen, setIsStyleFormOpen] = useState(false);
   const [editingStyle, setEditingStyle] = useState<Style | null>(null);
 
+  // Funciones de carga con useCallback
+  const loadVideos = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const fetchedVideos = await VideoService.getVideos({ limit: 50 });
+      setVideos(fetchedVideos);
+    } catch (error) {
+      console.error('Failed to load videos:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setVideos]);
+
+  const loadStyles = useCallback(async () => {
+    try {
+      const response = await fetch('/api/styles');
+      if (response.ok) {
+        const data = await response.json();
+        setStyles(data);
+      }
+    } catch (error) {
+      console.error('Failed to load styles:', error);
+    }
+  }, [setStyles]);
+
   // Cargar videos y estilos al montar
   useEffect(() => {
     loadVideos();
@@ -38,35 +63,11 @@ export default function Home() {
     return () => {
       window.removeEventListener('video-generated', handleVideoGenerated);
     };
-  }, []);
-
-  const loadVideos = async () => {
-    try {
-      setIsLoading(true);
-      const fetchedVideos = await VideoService.getVideos({ limit: 50 });
-      setVideos(fetchedVideos);
-    } catch (error) {
-      console.error('Failed to load videos:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [loadVideos, loadStyles]);
 
   const handleDeleteVideo = async (id: string) => {
     removeVideoFromStore(id);
     await loadVideos(); // Reload para asegurar consistencia
-  };
-
-  const loadStyles = async () => {
-    try {
-      const response = await fetch('/api/styles');
-      if (response.ok) {
-        const data = await response.json();
-        setStyles(data);
-      }
-    } catch (error) {
-      console.error('Failed to load styles:', error);
-    }
   };
 
   const handleCreateStyle = async (formData: FormData) => {

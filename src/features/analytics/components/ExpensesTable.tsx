@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CostEntry {
@@ -55,11 +55,7 @@ export function ExpensesTable() {
   const [filterModel, setFilterModel] = useState<string>('');
   const [filterDays, setFilterDays] = useState<number>(30);
 
-  useEffect(() => {
-    fetchCosts();
-  }, [pagination.page, filterModel, filterDays]);
-
-  const fetchCosts = async () => {
+  const fetchCosts = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -94,7 +90,11 @@ export function ExpensesTable() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.page, pagination.limit, filterModel, filterDays]);
+
+  useEffect(() => {
+    fetchCosts();
+  }, [fetchCosts]);
 
   const formatDate = (isoDate: string) => {
     const date = new Date(isoDate);
